@@ -3,10 +3,14 @@
 import json
 
 import redis
+import structlog
 
 from fastapi import FastAPI
 from starlette.requests import Request
+
 from entities import Tortoise
+
+logger = structlog.get_logger(__name__)
 
 # config
 
@@ -24,11 +28,15 @@ def broker():
 
 
 def handle_errors(msg: bytes):
-    if msg['type'] == 'message':
+    if msg["type"] == "message":
         try:
-            tortoise = Tortoise.from_msg(msg['data'])
+            tortoise = Tortoise.from_msg(msg["data"])
             # inform user?
-            logger.error("Tortoise can't move further", stage=tortoise.meta.stage, error=tortoise.payload)
+            logger.error(
+                "Tortoise can't move further",
+                stage=tortoise.meta.stage,
+                error=tortoise.payload,
+            )
         except ValueError:
             logger.error("unexpected error", msg=msg)
 
@@ -41,7 +49,5 @@ class Publisher:
         self._redis.publish(channel, json.dumps(process.dump()).encode())
 
 
-def _get_publisher(request: Request):
+def get_publisher(request: Request):
     return Publisher(app=request.app)
-
-

@@ -8,12 +8,15 @@ import uuid
 
 import attr
 
+
 def _str_uid():
     return str(uuid.uuid4())
+
 
 @attr.s(auto_attribs=True)
 class ProcessMeta:
     """Meta-information about running process"""
+
     stage: str
     uid: str = attr.ib(factory=_str_uid)
     user: str = attr.ib(factory=_str_uid)
@@ -22,6 +25,7 @@ class ProcessMeta:
 @attr.s(auto_attribs=True)
 class ProcessPayload:
     """Actual info to process."""
+
     x: int
     y: int
 
@@ -29,12 +33,14 @@ class ProcessPayload:
 @attr.s(auto_attribs=True)
 class ProcessError:
     """Error message about a process."""
+
     error: str
 
 
 @attr.s(auto_attribs=True)
 class Tortoise:
     """A tortoise is a slow, stage-based, distributed process."""
+
     meta: ProcessMeta
     payload: t.Union[ProcessPayload]
 
@@ -48,12 +54,12 @@ class Tortoise:
     def from_msg(cls, msg: bytes):
         try:
             _json = json.loads(msg.decode())
-            meta = ProcessMeta(**_json['meta'])
-            if 'error' in _json['payload']:
+            meta = ProcessMeta(**_json["meta"])
+            if "error" in _json["payload"]:
                 payload_cls = ProcessError
             else:
                 payload_cls = ProcessPayload
-            payload = payload_cls(**_json['payload'])
+            payload = payload_cls(**_json["payload"])
             return cls(meta, payload)
         except (json.JSONDecodeError, LookupError):
             raise ValueError("Can't handle message")
