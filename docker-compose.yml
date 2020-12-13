@@ -1,0 +1,39 @@
+version: "3"
+services:
+  web:
+    image: ml_proto 
+    build:
+      context: proto
+    env_file: .env
+    ports:
+      - 8088:8088
+    expose:
+      - 8088
+    depends_on:
+      - redis
+    networks:
+      - ml_proto_net
+    command: python wsgi.py
+
+  rust:
+    image: ml_proto_rust 
+    build:
+      context: some_rust_lib
+    env_file: .env
+    depends_on:
+      - redis
+    networks:
+      - ml_proto_net
+    command: python pythorust.py
+
+  redis:
+    image: redis:4-alpine
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+    networks:
+      - ml_proto_net
+
+networks:
+  ml_proto_net:
+
