@@ -1,6 +1,15 @@
+This is an example of pipeline errors handling while complying to "12factor" principles:
+
+- we have several stateless processes (`proto` and `some_rust_lib`)
+- `proto` handles web requests and may inform user about errors in the pipeline
+- each spawned message has unique ID and user information (about who spawned it)
+- messages are routed via any broker (Redis Pub/Sub, RabbitMQ, you-name-it)
+- it's the process' responsibility to send a signal to a broker when the process can't handle message 
+- when the process is killed or dies silently - it's infrastructure problem
+
 .. code:: bash
 
-    $ poetry export -f proto/requirements.txt -o proto/requirements.txt --without-hashes
+    $ cd proto && poetry export -f requirements.txt -o requirements.txt --without-hashes && cd -
     $ docker build -t ml_proto proto
     $ docker build -t ml_proto_rust some_rust_lib
     $ docker-compose up
