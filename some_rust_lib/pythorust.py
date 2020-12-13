@@ -34,6 +34,10 @@ def process_msg(msg):
 def divider(tortoise):
     x = tortoise["payload"]["x"]
     y = tortoise["payload"]["y"]
+    if x > 1000:
+        return  # like if process lost the message
+
+    set_key(tortoise)
     try:
         result = x / y
     except ZeroDivisionError:
@@ -51,6 +55,11 @@ def error(msg):
     redis.StrictRedis(host="redis").publish(CHANNEL_ERROR, json.dumps(msg).encode())
     logger.info(f"Sent to: {CHANNEL_ERROR}", msg=msg)
 
+
+def set_key(msg):
+    uid = msg["meta"]["uid"]
+    redis.StrictRedis(host="redis").set(uid, json.dumps(msg).encode())
+    logger.info(f"Message last seen at DIVIDE", uid=uid)
 
 if __name__ == "__main__":
     pubsub = redis.StrictRedis(host="redis").pubsub()

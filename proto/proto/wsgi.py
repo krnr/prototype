@@ -30,6 +30,24 @@ def start(
     return UJSONResponse({"status": "ok", "process": process.dump()})
 
 
+@router.get("/check")
+def check(
+    request: Request,
+    key: t.Optional[str] = "",
+    reader: broker.Reader = Depends(broker.get_tortoise_reader),
+) -> Response:
+    if not key:
+        return UJSONResponse({"error": "no key to look for"}, 400)
+
+    message = f"Tortoise {key} last seen at: "
+    tortoise = reader.get(key)
+    if tortoise:
+        message += tortoise.meta.stage
+        logger.info(message)
+        return UJSONResponse({"status": "ok", "process": tortoise.dump()})
+    return UJSONResponse({"status": "suspicious", "message": f"{key} was never seen"})
+
+
 app = FastAPI(title="Прототип")
 app.include_router(router)
 

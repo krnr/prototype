@@ -46,8 +46,25 @@ class Publisher:
         self._redis = app.state.redis
 
     def publish(self, channel: str, process: Tortoise):
+        self._redis.set(process.meta.uid, json.dumps(process.dump()).encode())
         self._redis.publish(channel, json.dumps(process.dump()).encode())
+
+
+class Reader:
+    def __init__(self, app: FastAPI, entity_class=Tortoise):
+        self._redis = app.state.redis
+        self._class = entity_class
+
+    def get(self, key: str):
+        msg = self._redis.get(key)
+        if msg:
+            return self._class.from_msg(msg)
 
 
 def get_publisher(request: Request):
     return Publisher(app=request.app)
+
+
+def get_tortoise_reader(request: Request):
+    return Reader(app=request.app, entity_class=Tortoise)
+
